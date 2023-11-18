@@ -1,20 +1,23 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { useState } from "react";
-import AvailableButton from "../components/AvailableButton";
+import {useState } from "react";
 import UserCard from "../components/UserCard";
 import { useGetUsersQuery } from "../redux/api/userApi";
 import { IUser } from "../types";
 import { Pagination } from "react-headless-pagination";
 import { useDebounced } from "../redux/hook";
+import Spinner from "../components/Spinner";
 
 function User() {
   const query: Record<string, any> = {};
   const [page, setPage] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [available, setAvailable] = useState<boolean>();
+  const [domainList, setDomainList] = useState<string[]>([])
 
   query["page"] = page;
+  query["available"] = available;
 
   const debouncedTerm = useDebounced({
     searchQuery: searchTerm,
@@ -27,13 +30,19 @@ function User() {
     ...query
   });
   if (isLoading) {
-    return (
-      <div>Loading...</div>
-    )
+    return <Spinner/>
   }
   //@ts-ignore
   const userData = data?.users?.data;
   // console.log(data?.users?.data)
+// Fetching unique domains from user data
+ //@ts-ignore
+ const allDomains = data?.users?.data.map((user: IUser) => user.domain);
+ const uniqueDomains = Array.from(new Set(allDomains));
+
+ //@ts-ignore
+ const allGender = data?.users?.data?.map((user: IUser) => user.gender);
+ const uniqueGender = Array.from(new Set(allGender));
 
   const handlePageChange = (page: number) => {
     setPage(page);
@@ -45,13 +54,44 @@ function User() {
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex">
             <select className="block w-sm text-sm font-medium transition duration-500 border border-gray-800 rounded-lg shadow-sm h-9 focus:border-blue-600 focus:ring-1 focus:ring-inset focus:ring-blue-600 bg-none mr-2" >
-              <option value="week">Last week</option>
-              <option value="month">Last month</option>
-              <option value="year">Last year</option>
+              {uniqueDomains.map((domain: any, idx:any) => (
+                <option key={idx} value={domain}>{domain}</option>
+              ))}
             </select>
-            {/* <DropDown /> */}
+            <select className="block w-sm text-sm font-medium transition duration-500 border border-gray-800 rounded-lg shadow-sm h-9 focus:border-blue-600 focus:ring-1 focus:ring-inset focus:ring-blue-600 bg-none mr-2" >
+              {uniqueGender.map((gender: any, idx:any) => (
+                <option key={idx} value={gender}>{gender}</option>
+              ))}
+            </select>
           </div>
-          <AvailableButton />
+          <div className="flex items-baseline">
+    <div className="mx-4">
+        Available
+    </div>
+    <div>
+        <div className="flex space-x-4 items-baseline group">
+            <div
+                className="rounded-full flex bg-gray-50 border border-gray-300 py-2 px-4 space-x-4 group-checked:border-gray-500">
+                <div>
+                    <input type="radio" name="rdo" id="yes" className="peer hidden"/>
+                    <label htmlFor="yes"
+                        className="cursor-pointer peer-checked:text-blue-700 peer-checked:cursor-default text-gray-400">Yes</label>
+                </div>
+                <div>
+                    <input type="radio" name="rdo" id="no" className="peer hidden"/>
+                    <label htmlFor="no"
+                        className="cursor-pointer peer-checked:text-gray-800 peer-checked:cursor-default text-gray-400">No</label>
+                </div>
+            </div>
+            <div>
+                <input type="radio" name="rdo" id="null" className="peer hidden" checked/>
+                <label htmlFor="null" className="text-sm text-gray-200 peer-checked:inline hidden">Not set</label>
+                <label htmlFor="null" className="text-sm cursor-pointer text-blue-400 peer-checked:hidden inline">Reset
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
         </div>
         <div>
         <div className="bg-white p-4 rounded-lg">
