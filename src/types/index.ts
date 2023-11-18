@@ -20,3 +20,8 @@ export type IUser = {
     domain: string;
     available: boolean;
 }
+
+export interface IDebounced {
+  searchQuery: string;
+  delay: number;
+}

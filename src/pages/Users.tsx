@@ -1,20 +1,20 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import {useState } from "react";
+import { useState } from "react";
 import UserCard from "../components/UserCard";
 import { useGetUsersQuery } from "../redux/api/userApi";
 import { IUser } from "../types";
 import { Pagination } from "react-headless-pagination";
 import { useDebounced } from "../redux/hook";
-import Spinner from "../components/Spinner";
 
 function User() {
   const query: Record<string, any> = {};
   const [page, setPage] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [available, setAvailable] = useState<boolean>();
-  const [domainList, setDomainList] = useState<string[]>([])
+  const [domainList, setDomainList] = useState('');
+  const [genderList, setGenderList] = useState('')
 
   query["page"] = page;
   query["available"] = available;
@@ -26,24 +26,40 @@ function User() {
   if (debouncedTerm) {
     query["query"] = debouncedTerm;
   }
+  if (domainList) {
+    query["domain"] = domainList;
+  }
+  if (genderList) {
+    query["gender"] = genderList;
+  }
+
   const { data, isLoading } = useGetUsersQuery({
     ...query
   });
   if (isLoading) {
-    return <Spinner/>
+    return (
+      <div>Loading...</div>
+    )
   }
   //@ts-ignore
   const userData = data?.users?.data;
   // console.log(data?.users?.data)
 // Fetching unique domains from user data
  //@ts-ignore
- const allDomains = data?.users?.data.map((user: IUser) => user.domain);
+ const allDomains: string[] = data?.users?.data.map((user: IUser) => user.domain);
  const uniqueDomains = Array.from(new Set(allDomains));
-
  //@ts-ignore
  const allGender = data?.users?.data?.map((user: IUser) => user.gender);
  const uniqueGender = Array.from(new Set(allGender));
 
+ const handleDomains = (value: React.ChangeEvent<HTMLSelectElement>) => {
+  setDomainList(value.target.value)
+};
+
+const handleGender = (value: React.ChangeEvent<HTMLSelectElement>) => {
+  setGenderList(value.target.value)
+}
+console.log(domainList)
   const handlePageChange = (page: number) => {
     setPage(page);
   };
@@ -53,12 +69,12 @@ function User() {
       <div className="justify-between items-center flex-col-reverse md:flex-row flex my-10">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex">
-            <select className="block w-sm text-sm font-medium transition duration-500 border border-gray-800 rounded-lg shadow-sm h-9 focus:border-blue-600 focus:ring-1 focus:ring-inset focus:ring-blue-600 bg-none mr-2" >
+            <select onChange={handleDomains} className="block w-sm text-sm font-medium transition duration-500 border border-gray-800 rounded-lg shadow-sm h-9 focus:border-blue-600 focus:ring-1 focus:ring-inset focus:ring-blue-600 bg-none mr-2" >
               {uniqueDomains.map((domain: any, idx:any) => (
                 <option key={idx} value={domain}>{domain}</option>
               ))}
             </select>
-            <select className="block w-sm text-sm font-medium transition duration-500 border border-gray-800 rounded-lg shadow-sm h-9 focus:border-blue-600 focus:ring-1 focus:ring-inset focus:ring-blue-600 bg-none mr-2" >
+            <select onChange={handleGender} className="block w-sm text-sm font-medium transition duration-500 border border-gray-800 rounded-lg shadow-sm h-9 focus:border-blue-600 focus:ring-1 focus:ring-inset focus:ring-blue-600 bg-none mr-2" >
               {uniqueGender.map((gender: any, idx:any) => (
                 <option key={idx} value={gender}>{gender}</option>
               ))}
