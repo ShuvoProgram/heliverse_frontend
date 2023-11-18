@@ -2,7 +2,7 @@
 
 function UserCard({data}: any) {
     const {avatar, first_name, last_name, domain, gender, available} = data;
-    console.log(data)
+
   return (
     <div className="container max-w-full relative">
         <span className={`absolute ${available === true ? `bg-blue-500` : `bg-red-500`} text-blue-100 px-2 py-1 text-xs font-bold rounded-full -top-2 right-4 md:-right-3`}>{available === true ? 'available' : 'unable'}</span>
