@@ -6,8 +6,6 @@
   display: block;
 }
 
-
-
 ::-webkit-scrollbar {
   @apply w-2;
 }

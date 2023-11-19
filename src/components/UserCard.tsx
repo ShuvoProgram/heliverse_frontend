@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
-import { useCreateTeamMutation } from '../redux/api/teamApi';
-import { toast } from 'react-toastify';
+import React, { useState } from 'react';
+import { ITeam } from '../types';
 
 interface User {
   _id: string;
@@ -13,27 +12,27 @@ interface User {
   available: boolean;
 }
 
+
+
 interface UserCardProps {
   data: User;
 }
 
 const UserCard: React.FC<UserCardProps> = ({ data }) => {
-  const [createTeam] = useCreateTeamMutation();
+  const [inputData, setInputData] = useState<ITeam[]>([]);
 
   const handleCreateTeam = async (userData: User) => {
-    try {
-      if (userData.available) {
-        await createTeam({ teamMember: userData._id });
-        toast.success('Successfully created team');
-      } else {
-        toast.error('User Is Not Eligible!');
-      }
-    } catch (error: any) {
-      console.error(error.message);
-      toast.error('Error creating team');
-    }
-  };
+    const newTeam: ITeam = {
+      teamName: 'Default Team', // Provide a default team name or extract it from userData
+      // Include other necessary properties from userData
+      teamMember: userData._id
+    };
 
+    // Combine existing inputData with newTeam
+    const updatedCart = [...inputData, newTeam];
+    setInputData(updatedCart);
+  }
+  console.log(inputData)
   return (
     <div className="container max-w-full relative">
       <span

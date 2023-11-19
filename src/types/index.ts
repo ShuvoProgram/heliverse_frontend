@@ -21,6 +21,11 @@ export type IUser = {
     available: boolean;
 }
 
+export type ITeam = {
+  teamName: string;
+  teamMember: string;
+};
+
 export interface IDebounced {
   searchQuery: string;
   delay: number;

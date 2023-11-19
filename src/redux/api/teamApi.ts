@@ -15,10 +15,14 @@ const teamApi = api.injectEndpoints({
                 }
             },
             invalidatesTags: [tagTypes.teams]
-        })
+        }),
+        getAllTeams: builder.query({
+            query: () => TEAM_URL,
+          }),
     })
 })
 
 export const {
-    useCreateTeamMutation
+    useCreateTeamMutation,
+    useGetAllTeamsQuery
 } = teamApi;
