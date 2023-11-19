@@ -2,21 +2,36 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { useState } from "react";
-import UserCard from "../components/UserCard";
 import { useGetUsersQuery } from "../redux/api/userApi";
 import { IUser } from "../types";
 import { Pagination } from "react-headless-pagination";
 import { useDebounced } from "../redux/hook";
 import Teams from "../components/Teams";
 import TeamForm from "../components/TeamForm";
+import Spinner from "../components/Spinner";
+
+interface User {
+  _id: string;
+  avatar?: string;
+  first_name: string;
+  last_name: string;
+  domain: string;
+  gender: string;
+  available: boolean;
+}
+
+export interface Team {
+  teamMember: string;
+}
 
 function User() {
   const query: Record<string, any> = {};
   const [page, setPage] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [available, setAvailable] = useState<boolean>();
+  const [available, setAvailable] = useState<string | boolean | null>();
   const [domainList, setDomainList] = useState('');
   const [genderList, setGenderList] = useState('')
+  const [inputData, setInputData] = useState<Team[]>([]);
 
   query["page"] = page;
   query["available"] = available;
@@ -35,13 +50,15 @@ function User() {
     query["gender"] = genderList;
   }
 
+  if (available == true || available == false) {
+    query["available"] = available;
+  }
+
   const { data, isLoading } = useGetUsersQuery({
     ...query
   });
   if (isLoading) {
-    return (
-      <div>Loading...</div>
-    )
+    return <Spinner/>
   }
   //@ts-ignore
   const userData = data?.users?.data;
@@ -61,10 +78,27 @@ function User() {
   const handleGender = (value: React.ChangeEvent<HTMLSelectElement>) => {
     setGenderList(value.target.value)
   }
-  console.log(domainList)
+
+  const handleAvailableCheckboxChange = (value: React.SetStateAction<any>) => {
+    console.log(value);
+    setAvailable(value === available ? null : value);
+  };
+
   const handlePageChange = (page: number) => {
     setPage(page);
   };
+  
+
+  const handleCreateTeam = async (userData: User) => {
+    const newTeam: any = [
+      // Include other necessary properties from userData
+       userData._id
+    ];
+
+    // Combine existing inputData with newTeam
+    const updatedCart = [...inputData, newTeam];
+    setInputData(updatedCart);
+  }
 
   return (
     <div className="md:container md:mx-auto px-10">
@@ -82,36 +116,28 @@ function User() {
               ))}
             </select>
           </div>
-          <div className="flex items-baseline">
-            <div className="mx-4">
-              Available
-            </div>
-            <div>
-              <div className="flex space-x-4 items-baseline group">
-                <div
-                  className="rounded-full flex bg-gray-50 border border-gray-300 py-2 px-4 space-x-4 group-checked:border-gray-500">
-                  <div>
-                    <input type="radio" name="rdo" id="yes" className="peer hidden" />
-                    <label htmlFor="yes"
-                      className="cursor-pointer peer-checked:text-blue-700 peer-checked:cursor-default text-gray-400">Yes</label>
-                  </div>
-                  <div>
-                    <input type="radio" name="rdo" id="no" className="peer hidden" />
-                    <label htmlFor="no"
-                      className="cursor-pointer peer-checked:text-gray-800 peer-checked:cursor-default text-gray-400">No</label>
-                  </div>
+          <div className="flex">
+          <div className="relative flex items-start py-4 ml-2">
+                    <input id="1" type="checkbox" className="hidden peer" name="preferred_activities[]" value="1" checked={available === true}
+                    onChange={() => handleAvailableCheckboxChange(true)}/>
+                    <label htmlFor="1" className="inline-flex items-center justify-between w-auto p-2 font-medium tracking-tight border rounded-lg cursor-pointer bg-brand-light text-brand-black border-blue-500 peer-checked:border-blue-400 peer-checked:bg-blue-700 peer-checked:text-white peer-checked:font-semibold peer-checked:underline peer-checked:decoration-brand-dark decoration-2">
+                        <div className="flex items-center justify-center w-full">
+                            <div className="text-sm text-brand-black">Available</div>
+                        </div>
+                    </label>
                 </div>
-                <div>
-                  <input type="radio" name="rdo" id="null" className="peer hidden" checked />
-                  <label htmlFor="null" className="text-sm text-gray-200 peer-checked:inline hidden">Not set</label>
-                  <label htmlFor="null" className="text-sm cursor-pointer text-blue-400 peer-checked:hidden inline">Reset
-                  </label>
+          <div className="relative flex items-start py-4 ml-2">
+                    <input id="1" type="checkbox" className="hidden peer" name="preferred_activities[]" value="1" checked={available === false}
+                    onChange={() => handleAvailableCheckboxChange(false)}/>
+                    <label htmlFor="1" className="inline-flex items-center justify-between w-auto p-2 font-medium tracking-tight border rounded-lg cursor-pointer bg-brand-light text-brand-black border-red-500 peer-checked:border-red-400 peer-checked:bg-red-700 peer-checked:text-white peer-checked:font-semibold peer-checked:underline peer-checked:decoration-brand-dark decoration-2">
+                        <div className="flex items-center justify-center w-full">
+                            <div className="text-sm text-brand-black">Unable</div>
+                        </div>
+                    </label>
                 </div>
-              </div>
-            </div>
           </div>
         </div>
-        <div>
+        <div className="flex items-center">
           <div className="bg-white p-4 rounded-lg">
             <div className="relative bg-inherit">
               <input type="text"
@@ -124,30 +150,58 @@ function User() {
               <label htmlFor="username" className="absolute cursor-text left-0 -top-3 text-sm text-gray-500 bg-inherit mx-1 px-1 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-placeholder-shown:top-2 peer-focus:-top-3 peer-focus:text-sky-600 peer-focus:text-sm transition-all">Type inside me</label>
             </div>
           </div>
-        </div>
         <Teams />
+        </div>
       </div>
-      <div className="grid grid-cols-9">
-        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-4 col-span-7">
+      <div className="flex flex-col-reverse md:flex-row w-full">
+        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-4 basis-4/5">
           {userData?.map((user: IUser) => (
-            <UserCard key={user._id} data={user} />
+            <div className="container max-w-full relative">
+            <span
+              className={`absolute ${
+                user.available ? 'bg-blue-500' : 'bg-red-500'
+              } text-blue-100 px-2 py-1 text-xs font-bold rounded-full -top-2 right-4 md:-right-3`}
+            >
+              {user.available ? 'available' : 'unable'}
+            </span>
+            <div className="m-auto w-60 md:w-56 max-w-sm items-center justify-center overflow-hidden rounded-2xl bg-slate-200 shadow-xl">
+              <div className="h-24 bg-white" />
+              <div className="-mt-20 flex justify-center">
+                <img
+                  className="h-16 rounded-full"
+                  src={
+                    user.avatar ||
+                    'https://media.istockphoto.com/vectors/male-profile-flat-blue-simple-icon-with-long-shadow-vector-id522855255?k=20&m=522855255&s=612x612&w=0&h=fLLvwEbgOmSzk1_jQ0MgDATEVcVOh_kqEe0rqi7aM5A='
+                  }
+                  alt={`${user.first_name} ${user.last_name}`}
+                />
+              </div>
+              <div className="mt-5 mb-1 px-3 text-center text-lg">{`${user.first_name} ${user.last_name}`}</div>
+              <div className="mb-2 px-3 text-center text-sky-500">{user.domain}</div>
+              <blockquote>
+                <p className="mx-2 mb-4 text-center text-base">{user.gender}</p>
+              </blockquote>
+              <div className="w-full flex justify-center my-4">
+                <button className="px-4 bg-blue-500 text-white" onClick={() => handleCreateTeam(user)}>
+                  Add Team
+                </button>
+              </div>
+            </div>
+          </div>
           ))}
         </div>
-        <div className="col-span-2">
-          <TeamForm/>
+        <div className="basis-1/4">
+          <TeamForm data={inputData}/>
         </div>
       </div>
-      {/* Pagination component */}
-      Current page: {page}
-      current Data: {userData?.length}
-      <div className="w-full flex items-center justify-center my-4">
+      <div className="w-full flex items-center justify-center my-10">
         <Pagination
           currentPage={page}
           setCurrentPage={handlePageChange}
           totalPages={10}
           edgePageCount={2}
           middlePagesSiblingCount={2}
-          className="flex w-1/2"
+          className="flex"
           truncableText="..."
           truncableClassName=""
         >

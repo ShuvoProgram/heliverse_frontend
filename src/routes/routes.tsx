@@ -3,6 +3,7 @@ import App from "../App";
 import Home from "../pages/Home";
 import User from "../pages/Users";
 import TeamPage from "../pages/TeamPage";
+import TeamDetails from "../pages/TeamDetails";
 
 
 const routes = createBrowserRouter([
@@ -21,6 +22,10 @@ const routes = createBrowserRouter([
             {
                 path: '/team',
                 element: <TeamPage/>
+            },
+            {
+                path: '/team/:id',
+                element: <TeamDetails/>
             }
         ]
     }
