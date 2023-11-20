@@ -24,7 +24,7 @@ function TeamForm({data}: any) {
            toast.success("Team created successfully")
         }
     } catch (error: any) {
-        console.log(error.message)
+        toast.success("Team created failed")
     }
     }
   return (
